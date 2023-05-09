@@ -1,7 +1,6 @@
 import random
 import json
 
-
 responses=''
 with open('chatbot_responses.json','r') as openfile:
     responses=json.load(openfile)
