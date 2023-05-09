@@ -1,10 +1,50 @@
 import random
 import json
+from googlesearch import search
+import openai
 
 responses=''
 with open('chatbot_responses.json','r') as openfile:
     responses=json.load(openfile)
-# print(len(responses))
+# print(len(responses)) # You can uncomment this when ever you want to know how many responses are there in your json file. By default, it has 135 responses.
+
+# It will start to search.
+def google_search(query):
+    # Search Google
+    results = search(query, num_results=10)
+    return results
+
+
+# It will generate responses.
+def generate_response(prompt):
+    # Generate response using ChatGPT
+    response = openai.Completion.create(
+        engine='text-davinci-003',
+        prompt=prompt,
+        max_tokens=100,
+        temperature=0.7
+    )
+    return response.choices[0].text.strip()
+# google search engine loop begins here
+def google_search_begin():
+    print("Type quit to come out of google search engine.")
+    print("Type help to view help menu.")
+    while True:
+        # Start chat loop
+        user_input = input("Enter what you want to search: ")
+
+        if user_input.lower() == 'quit':
+            break
+        if user_input.lower()== 'help':
+            print("Type what you want to search and press enter to get search results.")
+            print("Type quit to come of this search engine.")
+            print("Type help to view help menu.")
+        # Search Google
+        query = user_input.replace('search', '')
+        results = google_search(query)
+        print("Search results:")
+        for result in results:
+            print(result)
 # Define a function to generate a response to a user's input
 def generate_response(input_text):
     # Convert input_text to lowercase and remove punctuation
@@ -21,13 +61,16 @@ def generate_response(input_text):
 def main():
     print("""Welcome! I am a primitive small scale Chatbot!
 Ask me a question or say hello to get started. Please avoid the use of any symbols for I am still young.
+Type google searc to use google search engine.
 I am sorry if you feel offended by any of my responses. It is not my intention to hurt you.""")
     while True:
         # Get user input
         user_input = input("You: ").lower()
         # Generate a response
         if user_input not in ["bye","see ya","see you","quit"]:
-            if user_input!='':
+            if user_input == "google search":
+                google_search_begin()
+            elif user_input!='':
                 bot_response = generate_response(user_input)
                 # Print the bot's response
                 print("Chatbot:", bot_response)
