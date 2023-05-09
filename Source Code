@@ -1,0 +1,58 @@
+import random
+import json
+
+
+responses=''
+with open('chatbot_responses.json','r') as openfile:
+    responses=json.load(openfile)
+# print(len(responses))
+# Define a function to generate a response to a user's input
+def generate_response(input_text):
+    # Convert input_text to lowercase and remove punctuation
+    input_text = input_text.lower().strip("?.,!")
+    # Check if the input_text is in the responses dictionary
+    if input_text in responses:
+        # Return a randomly selected response from the dictionary
+        return random.choice(responses[input_text])
+    else:
+        # If the input_text is not in the dictionary, ask the user to teach the chatbot
+        return "I'm sorry, I don't understand. Can you teach me? Please reply with a yes or no."
+
+# Define a main function to run the chatbot
+def main():
+    print("""Welcome! I am a primitive small scale Chatbot!
+Ask me a question or say hello to get started. Please avoid the use of any symbols for I am still young.
+I am sorry if you feel offended by any of my responses. It is not my intention to hurt you.""")
+    while True:
+        # Get user input
+        user_input = input("You: ").lower()
+        # Generate a response
+        if user_input not in ["bye","see ya","see you","quit"]:
+            if user_input!='':
+                bot_response = generate_response(user_input)
+                # Print the bot's response
+                print("Chatbot:", bot_response)
+                # if bot_response == ""
+                # Ask the user to teach the chatbot if it didn't understand their input
+                if bot_response == "I'm sorry, I don't understand. Can you teach me? Please reply with a yes or no.":
+                    user_choice = input("You: ").lower()
+                    if user_choice=='no':
+                        print("Chatbot: It's ok. I will learn eventually.")
+                    elif user_choice=='yes':
+                        print('Chatbot: Please tell me what I should reply.')
+                        new_response=input("You: ")
+                        # while(new)
+                        responses[user_input] = [new_response]
+                        print("Chatbot: Thank you for teaching me! Let's continue with our chat!!!")
+                    else:
+                        print("Chatbot: Sorry! I didn't understand you. Lets continue with our chat.")
+            else:
+                print('Chatbot: You did not say anything.')
+        else:
+            print(f'Chatbot: {generate_response(user_input)}')
+            with open('chatbot_responses.json','w') as outfile:
+                json.dump(responses,outfile)
+            exit()
+# Run the main function
+if __name__ == '__main__':
+    main()
