@@ -2,17 +2,28 @@ import random
 import json
 from googlesearch import search
 import openai
+import pyttsx3
 
-responses=''
+# To initialise the library to speak
+fr = pyttsx3.init()
+
+responses = ''
 with open('chatbot_responses.json','r') as openfile:
-    responses=json.load(openfile)
-# print(len(responses)) # You can uncomment this when ever you want to know how many responses are there in your json file. By default, it has 135 responses.
+    responses = json.load(openfile)
 
+
+# print(len(responses))
 # It will start to search.
 def google_search(query):
     # Search Google
     results = search(query, num_results=10)
     return results
+
+
+# This function is used when user want answers to be spoken out
+def speak(x):
+    fr.say(x)       # This function says the output. The output is passed as parameter into the function as x.
+    fr.runAndWait()
 
 
 # It will generate responses.
@@ -25,26 +36,39 @@ def generate_response(prompt):
         temperature=0.7
     )
     return response.choices[0].text.strip()
+
+
 # google search engine loop begins here
-def google_search_begin():
+def google_search_begin(speak_choice):
     print("Type quit to come out of google search engine.")
+    print("You can not alter speaking ability without exiting the search engine. ")
     print("Type help to view help menu.")
+    if speak_choice == 1:
+        speak("Type quit to come out of google search engine. You can not alter speaking ability without exiting the search engine. Type help to view help menu.")
     while True:
         # Start chat loop
-        user_input = input("Enter what you want to search: ")
-
+        if speak_choice == 1: speak("Enter what you want to search. ")
+        user_input = input("Google: Enter what you want to search: ")
         if user_input.lower() == 'quit':
             break
         if user_input.lower()== 'help':
             print("Type what you want to search and press enter to get search results.")
             print("Type quit to come of this search engine.")
+            print("You can not alter speaking ability without exiting the search engine.")
             print("Type help to view help menu.")
+            if speak_choice==1:
+                speak("Type what you want to search and press enter to get search results. Type quit to come of this search engine. You can not alter speaking ability without exiting the search engine. Type help to view help menu.")
+            continue
         # Search Google
         query = user_input.replace('search', '')
         results = google_search(query)
+        if speak_choice==1:
+            speak("Here are your top 10 search results.")
         print("Search results:")
         for result in results:
             print(result)
+
+
 # Define a function to generate a response to a user's input
 def generate_response(input_text):
     # Convert input_text to lowercase and remove punctuation
@@ -59,42 +83,74 @@ def generate_response(input_text):
 
 # Define a main function to run the chatbot
 def main():
-    print("""Welcome! I am a primitive small scale Chatbot!
-Ask me a question or say hello to get started. Please avoid the use of any symbols for I am still young.
-Type google searc to use google search engine.
-I am sorry if you feel offended by any of my responses. It is not my intention to hurt you.""")
+    speak_choice = 1      # Initially, the bot will be speaking. It can be altered later.
+    starting = """Welcome! I am a primitive small scale Chatbot! 
+Ask me a question or say hello to get started. Please avoid the use of any symbols for I am still young. 
+Type google search to use google search engine. 
+Type voice if you want to alter the ability to speak with you via audio or not. 
+I am sorry if you feel offended by any of my responses. It is not my intention to hurt you."""
+    print(starting)
+    if speak_choice == 1: speak(starting)
     while True:
         # Get user input
         user_input = input("You: ").lower()
         # Generate a response
         if user_input not in ["bye","see ya","see you","quit"]:
-            if user_input == "google search":
-                google_search_begin()
-            elif user_input!='':
+            if user_input=="voice":
+                # This is to alter speaking ability
+                temp="Type 0 if you don't want me to speak. Type 1 if you want me to speak."
+                print(f'Chatbot: {temp}')
+                if speak_choice == 1: speak(temp)
+                temp_speak_choice = input("You: ")
+                if temp_speak_choice == '0':
+                    print("Chatbot: Speaking option recorded. I will not speak until you again want me to.")
+                    speak_choice = int(temp_speak_choice)
+                elif temp_speak_choice == '1':
+                    print("Chatbot: Speaking option recorded. I will be also speaking with you until you don't want me to.")
+                    speak_choice = int(temp_speak_choice)
+                else:
+                    print("Chatbot: Sorry!!! I didn't get you.")
+                    if speak_choice == 1:
+                        speak("Sorry!!! I didn't get you.")
+                if speak_choice == 1 and temp_speak_choice == '1':
+                    speak("Speaking option recorded. I will be also speaking with you until you don't want me to.")
+            elif user_input == "google search":
+                google_search_begin(speak_choice)
+            elif user_input != '':
                 bot_response = generate_response(user_input)
                 # Print the bot's response
                 print("Chatbot:", bot_response)
+                if speak_choice == 1: speak(bot_response)
                 # if bot_response == ""
                 # Ask the user to teach the chatbot if it didn't understand their input
                 if bot_response == "I'm sorry, I don't understand. Can you teach me? Please reply with a yes or no.":
                     user_choice = input("You: ").lower()
-                    if user_choice=='no':
+                    if user_choice == 'no':
                         print("Chatbot: It's ok. I will learn eventually.")
-                    elif user_choice=='yes':
+                        if speak_choice == 1: speak("It's ok. I will learn eventually")
+                    elif user_choice == 'yes':
                         print('Chatbot: Please tell me what I should reply.')
-                        new_response=input("You: ")
+                        if speak_choice == 1: speak("Please tell me what I should reply.")
+                        new_response = input("You: ")
                         # while(new)
                         responses[user_input] = [new_response]
                         print("Chatbot: Thank you for teaching me! Let's continue with our chat!!!")
+                        if speak_choice == 1: speak(" Thank you for teaching me! Let's continue with our chat!!!")
                     else:
                         print("Chatbot: Sorry! I didn't understand you. Lets continue with our chat.")
+                        if speak_choice == 1 : speak("Sorry! I didn't understand you. Lets continue with our chat.")
             else:
                 print('Chatbot: You did not say anything.')
+                if speak_choice==1: speak("You did not say anything.")
         else:
-            print(f'Chatbot: {generate_response(user_input)}')
+            last=generate_response(user_input)
+            print(f'Chatbot: {last}')
+            if speak_choice==1: speak(last)
             with open('chatbot_responses.json','w') as outfile:
                 json.dump(responses,outfile)
             exit()
+
+
 # Run the main function
 if __name__ == '__main__':
     main()
